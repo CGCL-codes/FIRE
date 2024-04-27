@@ -1,0 +1,3 @@
+The file ctag is a binary nightly build version of universal-ctags. Which is a free software under GPLv2 (COPYING File).
+Version: https://github.com/universal-ctags/ctags-nightly-build/releases/tag/2023.12.20%2B293f11ef2834d540eebd9cfc976369eaf3c118d7
+File: https://github.com/universal-ctags/ctags-nightly-build/releases/download/2023.12.20%2B293f11ef2834d540eebd9cfc976369eaf3c118d7/uctags-2023.12.20-linux-x86_64.tar.xz

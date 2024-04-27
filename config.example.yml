@@ -1,0 +1,15 @@
+basic:
+  dataset:
+    normal_sample_dataset_path: 'resources/NormalSample'
+    old_new_func_dataset_path: 'resources/OldNewFuncs'
+  trace:
+    codebert_model_path: 'resources/codebert'
+    joern_path: 'resources/joern-cli'
+experiment:
+  token_filter:
+    jaccard_sim_threshold: 0.6
+  trace:
+    ast_sim_threshold_max: 1.0
+    ast_sim_threshold_min: 0.6
+    redis_host: 127.0.0.1
+    redis_port: 6379
