@@ -268,3 +268,19 @@ We use lazy caching technique (generate the cache vector when the vulnerability 
 The experiments are conducted on a machine with a 3.40 GHz Intel i7-13700k processor and 48 GB of RAM, running on ArchLinux with Linux Zen Kernel (Appendix C). **Please adjust the max process in each component to avoid crashes according to your experiments environments**.
 
 Rebuilding SFBL currently needs multiple unique (vulnerability, patch) function pairs of vulnerability function due to the  threshold selecting algorithm. A new option is going to add to bypass the threshold selection stage during SFBL rebuilding to avoid the need of multiple unique (vulnerability, patch) function pairs.
+
+# Publication
+Siyue Feng, Yueming Wu, Wenjie Xue, Sikui Pan, Deqing Zou, Yang Liu and Hai Jin. 2024. FIRE: Combining Multi-Stage Filtering with Taint Analysis for Scalable Recurring Vulnerability Detection. In Proceedings of the 33rd USENIX Security Symposium (USENIX Security ’24), August 14–16, 2024, Philadelphia Marriott Downtown in Philadelphia, PA, USA, 18 pages. 
+
+
+If you use our dataset or source code, please kindly cite our paper:
+```
+@INPROCEEDINGS{tritor2023,
+  author={Feng, Siyue and Wu, Yueming and Xue, Wenjie and Pan, Sikui and Zou, Deqing and Liu, Yang and Jin, Hai},
+  booktitle={33rd USENIX Security Symposium (USENIX Security ’24)}, 
+  title={FIRE: Combining Multi-Stage Filtering with Taint Analysis for Scalable Recurring Vulnerability Detection}, 
+  year={2024}}
+```
+
+# Support or Contact
+FIRE is developed in the National Engineering Research Center for Big Data Technology and System, Services Computing Technology and System Lab, Hubei Key Laboratory of Distributed System Security, Hubei Engineering Research Center on Big Data Security, Cluster and Grid Computing Lab, Huazhong University of Science and Technology, Wuhan, China by Siyue Feng (fengsiyue@hust.edu.cn), Yueming Wu (wuyueming21@gmail.com), Wenjie Xue (xuewenjie2021@hust.edu.cn), Sikui Pan (skpan@hust.edu.cn), Deqing Zou (deqingzou@hust.edu.cn), Yang Liu (yangliu@ntu.edu.sg), and Hai Jin (hjin@hust.edu.cn).
