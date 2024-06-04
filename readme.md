@@ -275,7 +275,7 @@ Siyue Feng, Yueming Wu, Wenjie Xue, Sikui Pan, Deqing Zou, Yang Liu and Hai Jin.
 
 If you use our dataset or source code, please kindly cite our paper:
 ```
-@INPROCEEDINGS{tritor2023,
+@INPROCEEDINGS{fire2024,
   author={Feng, Siyue and Wu, Yueming and Xue, Wenjie and Pan, Sikui and Zou, Deqing and Liu, Yang and Jin, Hai},
   booktitle={33rd USENIX Security Symposium (USENIX Security ’24)}, 
   title={FIRE: Combining Multi-Stage Filtering with Taint Analysis for Scalable Recurring Vulnerability Detection}, 
