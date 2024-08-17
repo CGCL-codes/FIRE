@@ -109,7 +109,7 @@ docker run -p 6379:6379 redis:7.2.3
 
 ## Datasets
 
-We use Old-New-Funcs dataset to store all the vulnerabilities and patches pairs which is used in all the components of FIRE.
+We use Old-New-Funcs dataset to store all the vulnerabilities and patches pairs that are used in all the components of FIRE.
 
 ### Old-New-Funcs Dataset
 
@@ -154,13 +154,13 @@ We suggest to put the dataset at `resource/NormalSample`
 |   |-- ...Other Software
 ```
 
-There is no extra constraints for the filenames of the normal functions store in the software directory.
+There are no extra constraints for the filenames of the normal functions stored in the software directory.
 
 ## How To Run
 
 ### Run Locally
 
-Make sure you have properly installed all the requirements and prepared the datasets before run.
+Make sure you have properly installed all the requirements and prepared the datasets before running.
 
 You can execute `python3 main --help` to read the help message of this project.
 
@@ -191,7 +191,7 @@ options:
 
 #### Rebuild Option
 
-We provide rebuild option to rebuild the cache when there are any updates to the dataset. We suggest to apply all the rebuild options first time before running the project.
+We provide a rebuild option to rebuild the cache when there are any updates to the dataset. We suggest applying all the rebuild options first time before running the project.
 
 If you update Old-New-Funcs Dataset, please rebuild `bloomFilter` and `old-new-funcs`.
 
@@ -201,7 +201,7 @@ Use space to separate the option if you want to apply multiple rebuild option.
 
 #### Results
 
-Detection results not only display in the console, but also in the `result` folder as well. You can find the detection result in `result/[target-system]`.
+Detection results are not only display in the console, but also in the `result` folder as well. You can find the detection result in `result/[target-system]`.
 
 ### Run Remote or In Docker
 
