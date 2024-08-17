@@ -141,7 +141,7 @@ The Old-New-Funcs filename structure:
 
 We utilized the `CVE`, `Function Name` and `OLD/NEW` part of the filename in FIRE. So please set them properly.
 
-### ~~~NormalSample Dataset~~~ (No need anymore)
+### ~~NormalSample Dataset~~ (No need anymore)
 
 The NormalSample Dataset Structure:
 
