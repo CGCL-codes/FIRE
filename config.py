@@ -12,14 +12,15 @@ def load_config():
             "basic": {
                 "dataset": {"old_new_func_dataset_path": "", "normal_sample_dataset_path": ""},
                 "trace": {"codebert_model_path": "", "joern_path": ""},
+                "workers": {"bloom_filter": 5, "token": 15, "syntax": 6, "trace": 32}
             },
             "experiment": {
                 "token_filter": {"jaccard_sim_threshold": 0.7},
                 "trace": {
                     "ast_sim_threshold_min": 0.7,
                     "ast_sim_threshold_max": 0.9,
-                    "redis_host": "",
-                    "redis_port": "",
+                    "redis_host": "127.0.0.1",
+                    "redis_port": "6379",
                 },
             },
         }
@@ -53,6 +54,15 @@ assert codebert_model_path is not None
 joern_path = trace.get("joern_path")
 assert joern_path is not None
 
+workers = config["basic"].get("workers", {})
+bloom_filter_worker = workers.get("bloom_filter")
+assert bloom_filter_worker is not None
+token_worker = workers.get("token")
+assert token_worker is not None
+syntax_worker = workers.get("syntax")
+assert syntax_worker is not None
+trace_worker = workers.get("trace")
+assert trace_worker is not None
 
 """
 check experiment config
@@ -62,7 +72,7 @@ jaccard_sim_threshold = experiment_token_filter.get("jaccard_sim_threshold", 0.7
 
 experiment_trace = config["experiment"].get("trace", {})
 ast_sim_threshold_min = experiment_trace.get("ast_sim_threshold_min", 0.7)
-ast_sim_threshold_max= experiment_trace.get("ast_sim_threshold_max", 0.9)
+ast_sim_threshold_max = experiment_trace.get("ast_sim_threshold_max", 0.9)
 
 redis_host = experiment_trace.get("redis_host")
 redis_port = experiment_trace.get("redis_port")

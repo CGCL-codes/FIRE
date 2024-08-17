@@ -1,6 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from loguru import logger
 
+import config
 from .detection import detect_vulnerable_with_initialize
 from .utils import vuln_to_patch_dict
 
@@ -17,7 +18,7 @@ def detect(
     pbar_queue,
     trace_all_result_queue = None
 ) -> None:
-    with ProcessPoolExecutor(max_workers=16) as executor:
+    with ProcessPoolExecutor(max_workers=config.trace_worker) as executor:
         futures = {}
 
         def process_future(future):
@@ -43,7 +44,7 @@ def detect(
                     process_future(future)
                 output_queue.put(vul_info)
                 pbar_queue.put(("__end_of_detection__", False))
-                
+
                 if trace_all_result_queue:
                     trace_all_result_queue.put(0)
                 logger.info("Trace Finished!")

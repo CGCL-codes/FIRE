@@ -53,9 +53,10 @@ def process():
                     process_running = False
                     return json.dumps({'Error': 'Detect Failed'}), 500
 
-                trace_file = f'result/{git_name}/{git_name}.trace.csv'
-                log_file = f'result/{git_name}/{git_name}.json'
-                info_file = f'result/{git_name}/{git_name}.detect_info.json'
+                result_dir = f'result/{git_name}'
+                trace_file = os.path.join(result_dir, f'{git_name}.trace.csv')
+                log_file = os.path.join(result_dir, f'{git_name}.json')
+                info_file = os.path.join(result_dir, f'{git_name}.detect_info.json')
                 if os.path.exists(log_file):
 
                     with open(log_file, 'r') as f:
@@ -87,6 +88,7 @@ def process():
                 else:
                     return json.dumps({'Error': 'Log file not found.'}), 500
 
+                shutil.rmtree(result_dir, ignore_errors=True)
                 process_running = False
                 return response
             else:

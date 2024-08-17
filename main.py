@@ -5,6 +5,7 @@ import os
 import queue
 import sys
 import time
+import traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from multiprocessing import Manager
 
@@ -48,11 +49,11 @@ def progress_bar_process(total_cnt, pbar_queue, output_name="detect_info.json"):
     vul_cnt = 0
     postfix_info = {}
     with tqdm(
-        total=total_cnt,
-        smoothing=0,
-        unit="f",
-        bar_format="{n_fmt}/{total_fmt}~{remaining}[{rate_fmt}{postfix}]",
-        file=sys.stdout,
+            total=total_cnt,
+            smoothing=0,
+            unit="f",
+            bar_format="{n_fmt}/{total_fmt}~{remaining}[{rate_fmt}{postfix}]",
+            file=sys.stdout,
     ) as pbar:
         while True:
             try:
@@ -119,39 +120,39 @@ def progress_bar_process(total_cnt, pbar_queue, output_name="detect_info.json"):
             token_speed = token_info["done"] / max(get_time(token_info), 1e-3)
             syntax_fail_filter_rate = trace_info["input"] / max(syntax_info["done"], 1)
             syntax_speed = syntax_info["done"] / max(get_time(syntax_info), 1e-3)
-            trace_speed = trace_info["done"] / max(get_time(trace_info), 1e3)
+            trace_speed = trace_info["done"] / max(get_time(trace_info), 1e-3)
             postfix_info = {
                 "bloom": "%d/%d(%.1f%%,%.1ff/s)"
-                % (
-                    bloom_info["done"],
-                    bloom_info["input"],
-                    100 * (1 - bloom_fail_filter_rate),
-                    bloom_speed,
-                ),
+                         % (
+                             bloom_info["done"],
+                             bloom_info["input"],
+                             100 * (1 - bloom_fail_filter_rate),
+                             bloom_speed,
+                         ),
                 "token": "%d/%d(%.1f%%,%.2f[%.2f]f/s)"
-                % (
-                    token_info["done"],
-                    token_info["input"],
-                    100 * (1 - token_fail_filter_rate),
-                    token_speed,
-                    bloom_fail_filter_rate * bloom_speed,
-                ),
+                         % (
+                             token_info["done"],
+                             token_info["input"],
+                             100 * (1 - token_fail_filter_rate),
+                             token_speed,
+                             bloom_fail_filter_rate * bloom_speed,
+                         ),
                 "syntax": "%d/%d(%.1f%%,%.2f[%.2f]f/s)"
-                % (
-                    syntax_info["done"],
-                    syntax_info["input"],
-                    100 * (1 - syntax_fail_filter_rate),
-                    syntax_speed,
-                    token_fail_filter_rate * token_speed,
-                ),
-                "trace": "%d/%d(%d,%.1f[%.1f]f/h)"
-                % (
-                    trace_info["done"],
-                    trace_info["input"],
-                    vul_cnt,
-                    3600 * trace_speed,
-                    3600 * (syntax_fail_filter_rate * syntax_speed),
-                ),
+                          % (
+                              syntax_info["done"],
+                              syntax_info["input"],
+                              100 * (1 - syntax_fail_filter_rate),
+                              syntax_speed,
+                              token_fail_filter_rate * token_speed,
+                          ),
+                "trace": "%d/%d(%d,%.2f[%.2f]f/s)"
+                         % (
+                             trace_info["done"],
+                             trace_info["input"],
+                             vul_cnt,
+                             trace_speed,
+                             syntax_fail_filter_rate * syntax_speed,
+                         ),
             }
             pbar.set_postfix(postfix_info)
 
@@ -160,7 +161,7 @@ def put_dataset_to_queue(dataset: Dataset.Base, output_queue, pbar_queue):
     # datasets = []
     for func_path in dataset.get_funcs():
         with open(func_path) as f:
-            output_queue.put((f.read(), func_path))
+            output_queue.put((f.read(), func_path, []))
             pbar_queue.put(("dataset", False))
 
     output_queue.put((None, "__end_of_detection__", []))
@@ -190,7 +191,7 @@ def dump_trace_func(input_queue, output_name="trace.csv"):
             writer.writerows(traces)
 
 
-def dump_vulnerable_func(input_queue, output_name="vuls.json"):
+def dump_vulnerable_func(input_queue, total_function_cnt, output_name="vuls.json"):
     vul_dict = {}
 
     vuls = []
@@ -210,6 +211,7 @@ def dump_vulnerable_func(input_queue, output_name="vuls.json"):
             logger.success(exist_vul)
             vul_all += 1
 
+        vul_dict["total_func"] = total_function_cnt
         vul_dict["cnt"] = vul_cnt
         vul_dict['all'] = vul_all
         vul_dict["vul"] = vuls
@@ -220,6 +222,7 @@ def dump_vulnerable_func(input_queue, output_name="vuls.json"):
 
     if vul_cnt == 0:
         vul_dict = {
+            "total_func": total_function_cnt,
             "cnt": vul_cnt,
             "all": vul_all,
             "vul": vuls
@@ -235,18 +238,9 @@ def main(ProjectDataset: Dataset.Project, output_name, rebuild_list):
     OldNewFuncsDataset = Dataset.OldNewFuncs(
         config.old_new_func_dataset_path, rebuild=("old-new-funcs" in rebuild_list)
     )
-    NormalSampleDataset = Dataset.NormalSample(
-        config.normal_sample_dataset_path, size=3000, rebuild=("normal-sample" in rebuild_list)
-    )
 
     logger.info("Start Initialization")
-
-    BloomFilter.initialization(
-        OldNewFuncsDataset.get_funcs(sample=True),
-        OldNewFuncsDataset.get_funcs(non_sample=True),
-        NormalSampleDataset.get_funcs(),
-        rebuild=("bloomFilter" in rebuild_list),
-    )
+    BloomFilter.initialization(OldNewFuncsDataset.get_funcs(vul=True), rebuild=("bloomFilter" in rebuild_list))
     TokenFilter.initialization(OldNewFuncsDataset.get_funcs(vul=True))
     SyntaxFilter.initialization(OldNewFuncsDataset.get_func_pairs())
     Trace.initialization(OldNewFuncsDataset.get_func_pairs())
@@ -302,7 +296,7 @@ def main(ProjectDataset: Dataset.Project, output_name, rebuild_list):
                 pbar_queue,
                 trace_all_result_queue,
             ),
-            executor.submit(dump_vulnerable_func, vulnerable_func_queue, output_name),
+            executor.submit(dump_vulnerable_func, vulnerable_func_queue, ProjectDataset.total_functions, output_name),
             executor.submit(
                 dump_trace_func,
                 trace_all_result_queue,
@@ -315,9 +309,11 @@ def main(ProjectDataset: Dataset.Project, output_name, rebuild_list):
             try:
                 future.result()
             except Exception as e:
-                logger.error(e)
+                exception_traceback = traceback.format_exc()
+                logger.error(exception_traceback)
 
     logger.info("Detection Complete")
+
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -325,14 +321,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract data from project dir")
     parser.add_argument("project", type=str, help="Path to the project dir")
     parser.add_argument("--rebuild", nargs="*", default=["target"],
-                        choices=["bloomFilter", "old-new-funcs", "normal-sample", "target"],
+                        choices=["bloomFilter", "old-new-funcs", "target"],
                         help="Rebuild any of the components/dataset cache")
+    parser.add_argument(
+        "--restore-processed", help="Restore processed cache"
+    )
     args = parser.parse_args()
 
-    ProjectDataset = Dataset.Project(os.path.join(BASE_DIR, args.project), rebuild=("target" in args.rebuild))
+    ProjectDataset = Dataset.Project(os.path.join(BASE_DIR, args.project),
+                                     restore_processed=args.restore_processed,
+                                     rebuild=("target" in args.rebuild))
 
     project_name = os.path.basename(args.project)
     result_dir = f"result/{project_name}"
     os.makedirs(result_dir, exist_ok=True)
-    
+
     main(ProjectDataset, output_name=f"{result_dir}/{project_name}.json", rebuild_list=args.rebuild)

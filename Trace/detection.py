@@ -1,30 +1,20 @@
-from collections import Counter
-import json
 import os
 import traceback
 from typing import List
-from line_profiler import profile
+
 import numpy as np
 import ppdeep
-
 from loguru import logger
-
-import config
-from .serializer import Serializer
-from .embedding import CodeBertEmbedding
 
 from Trace.manager import (
     FunctionManager,
     FunctionPairManager,
 )
 from Trace.utils import (
-    # diff_embedding_dict
-    # error_func_list,
-    # patch_line_hash_dict,
     vuln_to_patch_dict,
-    norm_line,
-    diff_lines,
 )
+from .embedding import CodeBertEmbedding
+from .serializer import Serializer
 
 
 def max_mean_col(matrix):

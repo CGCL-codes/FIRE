@@ -75,7 +75,12 @@ class OldNewFuncsDataset(Dataset.base.BaseDataset):
                         func_path = self._function_path(software, cve, function)
                         with open(func_path) as f:
                             # Code Purification
-                            code = function_purification(f.read())
+                            try:
+                                raw_code = f.read()
+                            except UnicodeDecodeError:
+                                with open(func_path, encoding="cp1252") as f2:
+                                    raw_code = str(f2.read())
+                            code = function_purification(raw_code)
                         if code == "":
                             continue
                         # Function Tagging
