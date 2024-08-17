@@ -1,17 +1,8 @@
-
-
 import csv
 import difflib
 import hashlib
 import os
 from typing import List
-
-
-
-
-
-
-
 
 vuln_to_patch_dict = {}
 

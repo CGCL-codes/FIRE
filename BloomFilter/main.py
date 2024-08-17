@@ -7,7 +7,6 @@ from loguru import logger
 import BloomFilter.sfbl
 import BloomFilter.feature_extractor
 
-Extractor = BloomFilter.feature_extractor.FeatureExtractor()
 DetectFilter = None
 
 
@@ -25,9 +24,9 @@ def _default_dump(obj):
         return obj
 
 
-def initialization(vul_functions_sample, vul_functions_no_sample, no_vul_functions, sfbl_dropout_rate=0.17,
-                   require_recall=0.96, rebuild=False):
+def initialization(vul_functions, rebuild=False):
     cache_json_path = "cache/bloomFilter.json"
+    Extractor = BloomFilter.feature_extractor.FeatureExtractor()
     try:
         if rebuild:
             raise Exception("Rebuild flag on")
@@ -36,16 +35,17 @@ def initialization(vul_functions_sample, vul_functions_no_sample, no_vul_functio
     except Exception as e:
         rebuild = True
         logger.warning("Threshold cache fail or rebuild flag on, refind threshold: {}".format(e))
-        # Find Threshold Parse
-        construct_set = vul_functions_sample
-        construct_vectors = Extractor.extract_from_files(construct_set)
-        target_set = [*vul_functions_no_sample, *no_vul_functions]
-        target_vector = Extractor.extract_from_files(target_set)
-        target_tags = [1] * len(vul_functions_no_sample) + [0] * len(no_vul_functions)
-        sfbl_filter = BloomFilter.sfbl.SFBL(n=Extractor.n, maximum_tries=100, dropout_rate=sfbl_dropout_rate,
-                                            use_cache=False)
-        threshold = sfbl_filter.find_threshold(construct_vectors, target_vector, target_tags,
-                                               require_recall=require_recall)
+        threshold = -100
+        # For convenience generating SFBF, the procedure of generating threshold is removed and the value of threshold
+        # is fixed to -100(100 tries).
+        #
+        # non_sample, normal_dataset is no need here anymore. You can just use vulnerability functions you collected
+        # to generate the SFBF with the corresponding format listed in the README.
+        #
+        # If you want to know how we set the threshold to -100, please refer to the previous commit.
+        #
+        # To find out the threshold, you should prepare a vulnerable function dataset which have different
+        # versions of vulnerable, a normal dataset which consist functions of popular projects.
         os.makedirs(os.path.dirname(cache_json_path), exist_ok=True)
         with open(cache_json_path, "w") as f:
             json.dump({"threshold": threshold}, f, default=_default_dump)
@@ -53,10 +53,9 @@ def initialization(vul_functions_sample, vul_functions_no_sample, no_vul_functio
     # SFBL Bloom Filter Constructing
     global DetectFilter
     DetectFilter = BloomFilter.sfbl.SFBL(n=Extractor.n, maximum_tries=_threshold_to_maximum_tries(threshold),
-                                         dropout_rate=sfbl_dropout_rate, rebuild=rebuild)
+                                         dropout_rate=0.17, rebuild=rebuild)
     if DetectFilter.rebuild:
-        construct_set = [*vul_functions_sample, *vul_functions_no_sample]
-        construct_vectors = Extractor.extract_from_files(construct_set)
+        construct_vectors = Extractor.extract_from_files(vul_functions)
         DetectFilter.construct(construct_vectors, threshold)
     else:
         logger.info("Using Cached Bloom Filter Bins")
@@ -64,6 +63,7 @@ def initialization(vul_functions_sample, vul_functions_no_sample, no_vul_functio
 
 def detect(code: str) -> bool:
     if isinstance(DetectFilter, BloomFilter.sfbl.SFBL):
+        Extractor = BloomFilter.feature_extractor.FeatureExtractor()
         vector = Extractor.extract_vector(code)
         return DetectFilter.detect(vector)
     else:

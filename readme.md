@@ -10,7 +10,7 @@ The project consists four components(packages): `BloomFilter`(SFBF, Section 3.1)
 
 Besides, we provide utils classes in `Dataset` package to load dataset, including the `Old-New-Funcs` dataset, `NormalSample`dataset, and a class to load the target system (`Dataset/target_project.py`).
 
-During the detection, `cache`, `log`, `processed`, `result` four directories are used.
+During the detection, `cache`, `log`, `processed`, `result`, `workspace` five directories are used.
 
 We provide dockerfile and a flask server(`server.py`), so you can build the project to docker and use HTTP Request to detect vulnerability.
 
@@ -29,31 +29,8 @@ conda env new -f environment.yml
 # Install Python Requirements Except Torch
 pip install -r requirements.txt
 # Install Torch
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cpu
 ```
-
-#### requirement list
-
-- python=3.11
-- loguru=0.7.2
-- numpy=1.26.2
-- pygments=2.15.1
-- matplotlib=3.8.0
-- scikit-learn=1.2.2
-- tqdm=4.65.0
-- levenshtein=0.23.0
-- networkx=3.2.1
-- redis-py=5.0.1
-- flask=3.0.0
-- pytorch=2.1.0
-- torchvision=0.16.0
-- torchaudio=2.1.0
-- transformers=4.36.2
-- bloom-filter2=2.0.0
-- line-profiler=4.1.2
-- ppdeep=20200505
-- tree-sitter=0.20.4
-- anytree=2.8.0
 
 ### Install Codebert
 
@@ -63,21 +40,21 @@ You can find `codebert` here [microsoft/codebert-base](https://huggingface.co/mi
 
 ### Install Joern
 
-Joern needs Java to run. In our project we use `jdk-19.0.2`.
+Joern needs Java to run. In our project we use `jdk-17.0.11`.
 
 #### Install Java
 
-Get tar.gz tarball of jdk and unzip it to `resource/jdk-19.0.2`.
+Get tar.gz tarball of jdk and unzip it to `resource/jdk-17.0.11`.
 
 ```bash
-JAVA_HOME="/path/to/FIRE-public/resource/jdk-19.0.2"
+JAVA_HOME="/path/to/FIRE-public/resource/jdk-17.0.11"
 PATH=$PATH:$JAVA_HOME/bin
 java --version
 ```
 ```
-java 19.0.2 2023-01-17
-Java(TM) SE Runtime Environment (build 19.0.2+7-44)
-Java HotSpot(TM) 64-Bit Server VM (build 19.0.2+7-44, mixed mode, sharing)
+java 17.0.11 2024-04-16 LTS
+Java(TM) SE Runtime Environment (build 17.0.11+7-LTS-207)
+Java HotSpot(TM) 64-Bit Server VM (build 17.0.11+7-LTS-207, mixed mode, sharing)
 ```
 
 #### Install Joern-cli
@@ -105,7 +82,7 @@ joern>
 #### About Ctags
 
 Since Ctags is a lightweight open-source software, we put its binary version in `Database/universal-ctags` with COPYING.
-So you don't need to install it.  
+So you don't need to install it. However, you should make sure +x is set to ctags file before run.
 
 ```bash
 ./Dataset/universal-ctags/ctags --version
@@ -122,17 +99,17 @@ Exuberant Ctags 5.8, Copyright (C) 1996-2009 Darren Hiebert
 
 #### About Redis
 
-`Trace` need Redis for caching. We use Redis docker in our experiments.
+`Trace` need Redis for caching. We use Redis docker in our experiments. If you want to build docker,
+please make sure you have put redis 7.2.3 in `resource/redis-7.2.3`, and the external redis docker is **no need** in the run 
+since we will install one in the procedure of the building.
 
 ```bash
-docker run -p 6379:6379 redis 
+docker run -p 6379:6379 redis:7.2.3
 ```
 
 ## Datasets
 
 We use Old-New-Funcs dataset to store all the vulnerabilities and patches pairs which is used in all the components of FIRE.
-
-We use normalSample dataset, which stores normal functions collected from open source software, to decide the threshold SFBF using.
 
 ### Old-New-Funcs Dataset
 
@@ -164,7 +141,7 @@ The Old-New-Funcs filename structure:
 
 We utilized the `CVE`, `Function Name` and `OLD/NEW` part of the filename in FIRE. So please set them properly.
 
-### NormalSample Dataset
+### ~~~NormalSample Dataset~~~ (No need anymore)
 
 The NormalSample Dataset Structure:
 
@@ -208,7 +185,7 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  --rebuild [{bloomFilter,old-new-funcs,normal-sample,target} ...]
+  --rebuild [{bloomFilter,old-new-funcs,target} ...]
                         Rebuild any of the components/dataset cache
 ```
 
@@ -217,8 +194,6 @@ options:
 We provide rebuild option to rebuild the cache when there are any updates to the dataset. We suggest to apply all the rebuild options first time before running the project.
 
 If you update Old-New-Funcs Dataset, please rebuild `bloomFilter` and `old-new-funcs`.
-
-If you update NormalSample Dataset, please rebuild `bloomFilter` and `normal-sample`.
 
 If you do not specify any rebuild options, `target` option is set default to extract function of the target system each time before the vulnerbility detection.
 
@@ -266,8 +241,6 @@ docker build .
 We use lazy caching technique (generate the cache vector when the vulnerability and patch function are needed) instead of generate vectors of all vulnerability and patch functions in advance in `Trace` component to accelerate the experiments, making the first run of FIRE might slower than expected. However, in production environment, all the vectors of vulnerability and patch function should generate in advance. So please **run again** to get the actual run speed. 
 
 The experiments are conducted on a machine with a 3.40 GHz Intel i7-13700k processor and 48 GB of RAM, running on ArchLinux with Linux Zen Kernel (Appendix C). **Please adjust the max process in each component to avoid crashes according to your experiments environments**.
-
-Rebuilding SFBL currently needs multiple unique (vulnerability, patch) function pairs of vulnerability function due to the  threshold selecting algorithm. A new option is going to add to bypass the threshold selection stage during SFBL rebuilding to avoid the need of multiple unique (vulnerability, patch) function pairs.
 
 # Publication
 Siyue Feng, Yueming Wu, Wenjie Xue, Sikui Pan, Deqing Zou, Yang Liu and Hai Jin. 2024. FIRE: Combining Multi-Stage Filtering with Taint Analysis for Scalable Recurring Vulnerability Detection. In Proceedings of the 33rd USENIX Security Symposium (USENIX Security ’24), August 14–16, 2024, Philadelphia Marriott Downtown in Philadelphia, PA, USA, 18 pages. 

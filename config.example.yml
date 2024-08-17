@@ -5,11 +5,18 @@ basic:
   trace:
     codebert_model_path: 'resources/codebert'
     joern_path: 'resources/joern-cli'
+  workers:
+    bloom_filter: 5
+    token: 15
+    syntax: 6
+    trace: 32
 experiment:
   token_filter:
-    jaccard_sim_threshold: 0.6
+    jaccard_sim_threshold: 0.7
   trace:
-    ast_sim_threshold_max: 1.0
     ast_sim_threshold_min: 0.6
+    ast_sim_threshold_max: 1.0
+    fuzzy_hash_sim_threshold_max: 0.9
+    fuzzy_hash_sim_threshold_min: 0.7
     redis_host: 127.0.0.1
     redis_port: 6379

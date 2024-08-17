@@ -3,14 +3,12 @@ numpy==1.26.2
 pygments==2.15.1
 bloom-filter2==2.0.0
 matplotlib==3.8.0
-scikit-learn==1.2.2
 tqdm==4.65.0
 levenshtein==0.23.0
 networkx==3.2.1
 transformers==4.36.2
 redis==5.0.1
 flask==3.0.0
-line-profiler==4.1.2
 ppdeep==20200505
 tree-sitter==0.20.4
 anytree==2.8.0

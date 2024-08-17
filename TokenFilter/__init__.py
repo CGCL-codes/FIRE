@@ -4,6 +4,7 @@ from typing import List
 from loguru import logger
 
 import TokenFilter.main
+import config
 
 
 def initialization(vul_functions: List[str]) -> None:
@@ -14,7 +15,7 @@ def initialization(vul_functions: List[str]) -> None:
 
 
 def detect(input_queue, output_queue, pbar_queue) -> None:
-    with ProcessPoolExecutor(max_workers=20) as executor:
+    with ProcessPoolExecutor(max_workers=config.token_worker) as executor:
         futures = {}
         
         def process_future(future):

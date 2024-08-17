@@ -28,7 +28,9 @@ class ProjectDataset(Dataset.base.BaseDataset):
 
         current_file = ""
         current_code = []
-        for line in all_function_list_str.split("\n"):
+        all_function_list = all_function_list_str.split("\n")
+        self.total_functions = len(all_function_list)  # All function including those < 3 lines
+        for line in all_function_list:
             if line == "":
                 continue
             try:
@@ -91,7 +93,7 @@ class ProjectDataset(Dataset.base.BaseDataset):
                 f.write(func_body)
         logger.info("Target Function Preprocessing Finished")
 
-    def __init__(self, project_dir: str, seed=20231031, rebuild=False, skip_loc_threshold=False):
+    def __init__(self, project_dir: str, seed=20231031, rebuild=False, skip_loc_threshold=False, restore_processed=False):
         """
         Initialize Project dataset
         :param project_dir: Path to the folder of Target Project Dataset
@@ -102,6 +104,7 @@ class ProjectDataset(Dataset.base.BaseDataset):
         cur_dir = os.path.dirname(os.path.realpath(__file__))
         self.path_to_ctags = os.path.join(cur_dir, "universal-ctags/ctags")
         self.skip_loc_threshold = skip_loc_threshold
+        self.restore_processed = restore_processed
 
         if not os.path.exists(self.path_to_ctags):
             logger.critical("Ctags Not Found In Given Path")
@@ -118,15 +121,16 @@ class ProjectDataset(Dataset.base.BaseDataset):
             os.makedirs(self.cache_dir, exist_ok=True)
             self._preprocess(project_dir)
         else:
-            logger.info("Initializing Project Dataset")
-            project_name = os.path.split(project_dir.rstrip("/"))[-1]
-            self.cache_dir = os.path.join(os.curdir, "processed", project_name)
             if not (os.path.exists(self.cache_dir) and len(os.listdir(self.cache_dir)) != 0):
                 os.makedirs(self.cache_dir, exist_ok=True)
                 self._preprocess(project_dir)
             else:
                 logger.info("Using Target_Function preprocessed Cache")
         logger.info(f"Project Dataset Size: {len(os.listdir(self.cache_dir))}")
+
+    def __del__(self):
+        if not self.restore_processed:
+            shutil.rmtree(self.cache_dir, ignore_errors=True)
 
     def get_funcs(self, size=-1, **kwargs) -> List[str]:
         """

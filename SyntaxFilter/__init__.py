@@ -1,10 +1,12 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from loguru import logger
 
+import config
 from .detection import detect_vulnerable_with_initialize
 from Trace.utils import vuln_to_patch_dict
 
-def initialization(file_pair_list): 
+
+def initialization(file_pair_list):
     logger.info("Initialize Syntax Filter")
     for vuln_file, patch_file in file_pair_list:
         vuln_to_patch_dict[vuln_file] = patch_file
@@ -18,7 +20,7 @@ def detect(
     pbar_queue,
     trace_all_result_queue
 ) -> None:
-    with ProcessPoolExecutor(max_workers=16) as executor:
+    with ProcessPoolExecutor(max_workers=config.syntax_worker) as executor:
         futures = {}
 
         def process_future(future):
@@ -44,13 +46,14 @@ def detect(
                     process_future(future)
                 output_queue.put(vul_info)
                 # pbar_queue.put(("__end_of_detection__", False))
-                
+
                 trace_all_result_queue.put(0)
                 logger.info("Syntax Finished!")
                 break
 
             future = executor.submit(
-                detect_vulnerable_with_initialize, dst_func, dst_file, similar_list, vulnerable_func_queue, trace_all_result_queue
+                detect_vulnerable_with_initialize, dst_func, dst_file, similar_list, vulnerable_func_queue,
+                trace_all_result_queue
             )
             futures[future] = (dst_func, dst_file)
 
@@ -64,4 +67,4 @@ def detect(
             for future in done_futures:
                 futures.pop(future)
 
-                
+
