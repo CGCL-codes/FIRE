@@ -16,6 +16,16 @@ We provide dockerfile and a flask server(`server.py`), so you can build the proj
 
 ## Installation
 
+### Read first before installing:
+
+** Make sure you are installing the right version of the requirements and dependencies! **
+
+Installing wrong version of dependency may cause exceptions and bugs, since several dependencies are under heavy developments and change fast.
+
+** Do not extract the file in Windows and copy them to Linux. Extract them in Linux using `tar` and `unzip`. ** 
+
+Extract file in Windows may lose some metadata and cause permission issue during the detection.
+
 ### Install Python Requirements
 
 #### conda
@@ -32,11 +42,19 @@ pip install -r requirements.txt
 pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cpu
 ```
 
-### Install Codebert
+### Install CodeBert
 
 Put `codebert-base` in `resource/codebert`.
 
-You can find `codebert` here [microsoft/codebert-base](https://huggingface.co/microsoft/codebert-base).
+We use the pretrained CodeBert model provided by neulab. You can find `codebert` here [codebert-cpp](https://huggingface.co/neulab/codebert-cpp).
+
+FIRE have extensibility to other languages, if you are interested in migrating FIRE from c/cpp to other language, change `codebert-cpp` to `codebert-<another-language>` and find the right pretrained model in huggingface.
+
+See also the neulab code-bert link: (https://github.com/neulab/code-bert-score#huggingface--models)[https://github.com/neulab/code-bert-score#huggingface--models]
+
+If your interested language didn't have any pretrained models, you can use this one without pretraining: [microsoft/codebert-base](https://huggingface.co/microsoft/codebert-base).
+
+Note: These CodeBert Repos all have lfs objects. Simply using `git clone` may miss some vital objects stored in lfs. You **should** manually download those lfs object after cloning the model.
 
 ### Install Joern
 
@@ -45,6 +63,8 @@ Joern needs Java to run. In our project we use `jdk-17.0.11`.
 #### Install Java
 
 Get tar.gz tarball of jdk and unzip it to `resource/jdk-17.0.11`.
+
+We have tried multiple version of java and java17 works best. **Make sure you are installing the right java version**
 
 ```bash
 JAVA_HOME="/path/to/FIRE-public/resource/jdk-17.0.11"
@@ -59,9 +79,13 @@ Java HotSpot(TM) 64-Bit Server VM (build 17.0.11+7-LTS-207, mixed mode, sharing)
 
 #### Install Joern-cli
 
-We use version `1.2.1` of Joern. You can find Joern in [joernio/joern](https://github.com/joernio/joern).
+We use version `1.2.1` of Joern. You can find Joern in this GitHub repo: [joernio/joern](https://github.com/joernio/joern).
+
+You can find the v1.2.1 `joern-cli.zip` file here:  [joern-cli.zip](https://github.com/joernio/joern/releases/download/v1.2.1/joern-cli.zip)
 
 Please download the zip tarball of Joern and unzip it to `resource/joern-cli`
+
+Version 1.2.1 work best for our project.** Make sure you are installing the right version **.
 
 ```bash
 ./resource/joern-cli/joern
@@ -99,17 +123,29 @@ Exuberant Ctags 5.8, Copyright (C) 1996-2009 Darren Hiebert
 
 #### About Redis
 
-`Trace` need Redis for caching. We use Redis docker in our experiments. If you want to build docker,
-please make sure you have put redis 7.2.3 in `resource/redis-7.2.3`, and the external redis docker is **no need** in the run 
-since we will install one in the procedure of the building.
+`Trace` need Redis for caching. We use Redis docker in our experiments.
+
+** Run FIRE Outside Docker **
+
+You can install Redis v7.2.3 using package manager or use docker.
+
+For example, you can launch Redis using the command below.
 
 ```bash
 docker run -p 6379:6379 redis:7.2.3
 ```
 
+** Build and Run FIRE in Docker **
+
+please make sure you have put redis 7.2.3 in `resource/redis-7.2.3`.
+
+The external redis docker is **no need** during the detection since we will install the redis during the build of docker.
+
+If you run FIRE outside Docker, the step is **no need**.
+
 ## Datasets
 
-We use Old-New-Funcs dataset to store all the vulnerabilities and patches pairs that are used in all the components of FIRE.
+We use Old-New-Funcs dataset to store all the vulnerabilities and patches pairs which is used in all the components of FIRE.
 
 ### Old-New-Funcs Dataset
 
@@ -141,7 +177,7 @@ The Old-New-Funcs filename structure:
 
 We utilized the `CVE`, `Function Name` and `OLD/NEW` part of the filename in FIRE. So please set them properly.
 
-### ~~NormalSample Dataset~~ (No need anymore)
+### ~~~NormalSample Dataset~~~ (No need anymore)
 
 The NormalSample Dataset Structure:
 
@@ -154,13 +190,13 @@ We suggest to put the dataset at `resource/NormalSample`
 |   |-- ...Other Software
 ```
 
-There are no extra constraints for the filenames of the normal functions stored in the software directory.
+There is no extra constraints for the filenames of the normal functions store in the software directory.
 
 ## How To Run
 
 ### Run Locally
 
-Make sure you have properly installed all the requirements and prepared the datasets before running.
+Make sure you have properly installed all the requirements and prepared the datasets before run.
 
 You can execute `python3 main --help` to read the help message of this project.
 
@@ -189,9 +225,15 @@ options:
                         Rebuild any of the components/dataset cache
 ```
 
+Note: It would be better putting the project arguments before options to avoid parsing error. An example using `--rebuild` option:
+
+```bash
+python3 main.py /path/to/target --rebuild bloomFilter old-new-funcs target
+```
+
 #### Rebuild Option
 
-We provide a rebuild option to rebuild the cache when there are any updates to the dataset. We suggest applying all the rebuild options first time before running the project.
+We provide rebuild option to rebuild the cache when there are any updates to the dataset. **We suggest to apply all the rebuild options first time before running the project.**
 
 If you update Old-New-Funcs Dataset, please rebuild `bloomFilter` and `old-new-funcs`.
 
@@ -201,7 +243,7 @@ Use space to separate the option if you want to apply multiple rebuild option.
 
 #### Results
 
-Detection results are not only display in the console, but also in the `result` folder as well. You can find the detection result in `result/[target-system]`.
+Detection results not only display in the console, but also in the `result` folder as well. You can find the detection result in `result/[target-system]`.
 
 ### Run Remote or In Docker
 
